@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cloud Storage</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add your custom CSS here -->
+    <style>
+        /* Add your custom styles here */
+        body {
+            background-color: #f0f0f0;
+        }
+        .container {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-primary text-white text-center py-3">
+        <h1>My Cloud Storage</h1>
+        <div class="login-register">
+            <button class="btn btn-success" id="loginButton" onclick="openLogin()">Login</button>
+            <button class="btn btn-success" id="registerButton" onclick="openRegister()">Register</button>
+            
+            <!-- Docker container button -->
+            <a href="http://localhost:8080" class="btn btn-primary" target="_blank" id="startWindowsContainer">Start Windows VM</a>
+            <a href="http://localhost:3000" class="btn btn-warning" target="_blank" id="startLinuxContainer">Start Linux VM</a>
+            
+        </div>
+    </header>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <form id="upload-form" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Choose a file to upload:</label>
+                        <input type="file" class="form-control-file" name="file" required accept=".pdf,.ppt,.pptx,.mp4,.avi,.mkv">
+                    </div>
+                    <button type="submit" class="btn btn-success">Upload</button>
+                </form>
+                <!-- Add the progress bar here -->
+                <!-- Add the list of files here -->
+                <ul class="list-group mt-3" id="file-list">
+                    {% for file in files %}
+                    <li class="list-group-item">
+                        {{ file }}
+                        <a href="/download/{{ file }}" download class="btn btn-primary btn-sm float-right">Download</a>
+                        <button class="btn btn-danger btn-sm float-right" onclick="removeFile('{{ file }}')">Remove</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+<!-- Login Form (Initially hidden) -->
+<!-- <object id="login-form" data="./login.html" style="display: none;"></object>
+
+Register Form (Initially hidden) -->
+<!-- <object id="register-form" data="./register.html" style="display: none;"></object> --> 
+
+    <footer class="bg-primary text-white text-center py-2 mt-5">
+        &copy; 2023 My Cloud Storage
+    </footer>
+    
+    <!-- Add your JavaScript code here -->
+    <script>
+        function removeFile(fileName) {
+        if (confirm(`Are you sure you want to remove ${fileName}?`)) {
+            // Send a request to the server to delete the file
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/remove');
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.send(JSON.stringify({ file: fileName }));
+
+            // Remove the file from the list without reloading the page
+            const listItem = document.querySelector(`li:contains("${fileName}")`);
+            if (listItem) {
+                listItem.remove();
+            }
+        }
+    }
+    
+        // JavaScript code for handling file upload progress
+        const form = document.getElementById('upload-form');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const progressContainer = document.getElementById('progress-container');
+        
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percent = (event.loaded / event.total) * 100;
+                    progressBar.style.width = percent + '%';
+                    progressText.textContent = percent.toFixed(0) + '%';
+                }
+            });
+            
+            xhr.upload.addEventListener('loadstart', () => {
+                progressContainer.style.display = 'block';
+            });
+            
+            xhr.upload.addEventListener('load', () => {
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+            });
+            
+            xhr.open('POST', '/');
+            xhr.send(formData);
+        });
+        function openLogin() {
+            window.location.href = "./login.html"; // Replace with your login page URL
+        }
+
+        function openRegister() {
+            window.location.href = "./register.html"; // Replace with your register page URL
+        }
+
+        // document.querySelector('a.btn-warning').addEventListener('click', function (event) {
+        //     event.preventDefault();
+        //     fetch('/start-linux', { method: 'GET' })
+        //         .then(response => {
+        //             if (response.status === 200) {
+        //                 alert('LInux VM started successfully.');
+        //                 // Redirect to the container's port 8080
+        //                 window.location.href = 'http://localhost:3000'; // Change the URL as needed
+        //             } else {
+        //                 alert('Error starting .');
+        //             }
+        //         })
+        //         .catch(error => {
+        //             alert('Error starting : ' + error);
+        //             console.log(error);
+        //         });
+        // });
+
+        // document.querySelector('a.btn-warning').addEventListener('click', function (event) {
+        //     event.preventDefault();
+        //     fetch('/start-windows', { method: 'GET' })
+        //         .then(response => {
+        //             if (response.status === 200) {
+        //                 alert('Windows VM started successfully.');
+        //                 // Redirect to the container's port 8080
+        //                 window.location.href = 'http://localhost:8080/#/'; // Change the URL as needed
+        //             } else {
+        //                 alert('Error starting .');
+        //             }
+        //         })
+        //         .catch(error => {
+        //             alert('Error starting : ' + error);
+        //             console.log(error);
+        //         });
+        // });
+    </script>
+</body>
+</html>
